@@ -1,6 +1,6 @@
 //
 //  GradientCirqueSlider.m
-//  leapmotor
+//  Flame Grace
 //
 //  Created by Flame Grace on 2017/7/12.
 //  Copyright © 2017年 Flame Grace. All rights reserved.
@@ -31,15 +31,7 @@
 - (void)setEnabled:(BOOL)enabled
 {
     _enabled = enabled;
-    if(enabled)
-    {
-        [self removeGestureRecognizer:self.pan];
-        [self addGestureRecognizer:self.pan];
-    }
-    else
-    {
-        [self removeGestureRecognizer:self.pan];
-    }
+    self.pan.enabled = enabled;
 }
 
 - (void)handlePan:(UIPanGestureRecognizer *)pan
@@ -96,7 +88,7 @@
 {
     UITouch *touch = [[touches allObjects]firstObject];
     CGPoint point = [touch locationInView:self];
-    if([self containPoint:point])
+    if([self containPoint:point]&&_enabled)
     {
         [self updateTemperatureByTouchPoint:point];
     }
@@ -105,7 +97,8 @@
 
 - (void)updateTemperatureByTouchPoint:(CGPoint)point
 {
-    float radius = (self.width-self.lineWidth)/2.0 - self.margin;
+    CGFloat width = self.frame.size.width;
+    float radius = (width-self.lineWidth)/2.0 - self.margin;
     CGFloat x =  point.x - radius;
     CGFloat y =  point.y - radius;
     CGFloat radians = atan(y/x);
@@ -114,12 +107,15 @@
         radians -= M_PI;
     }
     CGFloat degrees = radiansToDegrees(radians);
-    if(degrees<self.startAngle || degrees>self.endAngle)
-    {
-        return;
-    }
     CGFloat percent = (degrees-self.startAngle)/(self.endAngle- self.startAngle);
-    
+    if(percent<0)
+    {
+        percent += 1;
+    }
+    if(percent>1)
+    {
+        percent -= 1;
+    }
     self.progress = percent;
     [self gradientCirqueSliderValueChanged:self];
 }

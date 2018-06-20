@@ -1,24 +1,20 @@
 //
-//  Circle.m
-//  YKL
+//  GradientCirque.m
+//  Flame Grace
 //
-//  Created by Flame Grace on 15/12/7.
-//  Copyright © 2015年 Flame Grace. All rights reserved.
-//
+//  Created by Flame Grace on 2017/7/12.
+//  Copyright © 2017年 Flame Grace. All rights reserved.
 
 #import "GradientCirque.h"
 
 #define RGB(r, g, b) [UIColor colorWithRed:r/255.0 green:g/255.0 blue:b/255.0 alpha:1.0]
-
-
-static CGFloat endPointMargin = 1.0f;
 
 @interface GradientCirque ()
 
 @property (strong, nonatomic) CAShapeLayer* backLayer;
 @property (strong, nonatomic) CAShapeLayer* progressLayer;
 @property (strong, nonatomic) CAGradientLayer *gradientLayer;
-@property (strong, nonatomic) UIImageView*  endPoint;//在终点位置添加一个点
+@property (strong, nonatomic) UIImageView *endPoint;//在终点位置添加一个点
 @property (strong, nonatomic) UIBezierPath *path;
 @property (assign, nonatomic) CGFloat cacheWidth;
 @property (assign, nonatomic) CGFloat cacheHeight;
@@ -37,9 +33,10 @@ static CGFloat endPointMargin = 1.0f;
         _cacheFrame = frame;
         _lineWidth = lineWidth;
         _backStrokeColor = [UIColor colorWithRed:50.0/255.0f green:50.0/255.0f blue:50.0/255.0f alpha:1];
-        _gradientColors = [NSArray arrayWithObjects:(id)[RGB(255, 151, 0) CGColor],(id)[RGB(255, 203, 0) CGColor], nil];
-        _startAngle = -225;
-        _endAngle = 45;
+        _gradientColors = [NSArray arrayWithObjects:(id)[RGB(255, 203, 0) CGColor],(id)[RGB(255, 151, 0) CGColor], nil];
+        _startAngle = -90;
+        _endAngle = 270;
+        _endPointMargin = 1.0f;
         [self layoutLayers];
         self.progress = 0;
     }
@@ -86,6 +83,18 @@ static CGFloat endPointMargin = 1.0f;
 {
     _endPointImage = endPointImage;
     self.endPoint.image = endPointImage;
+}
+
+- (void)setEndPointMargin:(CGFloat)endPointMargin
+{
+    _endPointMargin = endPointMargin;
+    [self updateEndPoint];
+}
+
+- (void)setHideEndPoint:(BOOL)hideEndPoint
+{
+    _hideEndPoint = hideEndPoint;
+    self.endPoint.hidden = hideEndPoint;
 }
 
 - (void)layoutLayers
@@ -136,24 +145,16 @@ static CGFloat endPointMargin = 1.0f;
     [gradientLayer setMask:self.progressLayer]; //用progressLayer来截取渐变层
     [self.layer addSublayer:gradientLayer];
     self.gradientLayer = gradientLayer;
-    
-    if(!self.endPoint)
-    {
-        //用于显示结束位置的小点
-        UIImageView *endPoint = [[UIImageView alloc] init];
-        endPoint.frame = CGRectMake(0, 0, _lineWidth - endPointMargin*2,_lineWidth - endPointMargin*2);
-        endPoint.backgroundColor = [UIColor whiteColor];
-        [self addSubview:endPoint];
-        self.endPoint = endPoint;
-    }
-    self.endPoint.layer.masksToBounds = YES;
-    self.endPoint.layer.cornerRadius = self.endPoint.bounds.size.width/2;
-    [self bringSubviewToFront:_endPoint];
+    [self updateEndPoint];
 }
 
 
 -(void)setProgress:(float)progress
 {
+    if(_progress == progress)
+    {
+        return;
+    }
     _progress = progress;
     _progressLayer.strokeEnd = progress;
     [self updateEndPoint];
@@ -175,6 +176,10 @@ static CGFloat endPointMargin = 1.0f;
 //更新小点的位置
 -(void)updateEndPoint
 {
+    if(_hideEndPoint)
+    {
+        return;
+    }
     float radius = (_cacheWidth-_lineWidth)/2.0 -_margin;
     CGFloat d = (self.endAngle - self.startAngle)*_progress + self.startAngle;
     CGFloat radians = degreesToRadians(d);
@@ -185,28 +190,25 @@ static CGFloat endPointMargin = 1.0f;
     CGFloat x = radius + moveX + _margin;
     CGFloat y = radius + moveY + _margin;
     //更新圆环的frame
-    CGRect rect = _endPoint.frame;
-    rect.origin.x = x + endPointMargin;
-    rect.origin.y = y + endPointMargin;
-    _endPoint.frame = rect;
+    CGRect rect = CGRectMake(x + _endPointMargin, y + _endPointMargin, _lineWidth - _endPointMargin*2,_lineWidth - _endPointMargin*2);
+    self.endPoint.frame = rect;
+    self.endPoint.layer.cornerRadius = rect.size.width/2;
     //移动到最前
-    [self bringSubviewToFront:_endPoint];
-
+    [self bringSubviewToFront:self.endPoint];
 }
 
-- (CGFloat)width
+- (UIImageView *)endPoint
 {
-    return _cacheWidth;
-}
-
-- (CGFloat)height
-{
-    return _cacheHeight;
-}
-
-- (CGRect)frame
-{
-    return _cacheFrame;
+    if(!_endPoint)
+    {
+        //用于显示结束位置的小点
+        _endPoint = [[UIImageView alloc] init];
+        _endPoint.backgroundColor = [UIColor redColor];
+        [self addSubview:_endPoint];
+        _endPoint.layer.masksToBounds = YES;
+        _endPoint.hidden = self.hideEndPoint;
+    }
+    return _endPoint;
 }
 
 @end

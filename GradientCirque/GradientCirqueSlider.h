@@ -1,6 +1,6 @@
 //
 //  GradientCirqueSlider.h
-//  leapmotor
+//  Flame Grace
 //
 //  Created by Flame Grace on 2017/7/12.
 //  Copyright © 2017年 Flame Grace. All rights reserved.

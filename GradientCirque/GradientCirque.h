@@ -1,10 +1,10 @@
 //
-//  Circle.h
-//  YKL
+//  GradientCirque.h
+//  Flame Grace
 //
-//  Created by Flame Grace on 15/12/7.
-//  Copyright © 2015年 Flame Grace. All rights reserved.
-//
+//  Created by Flame Grace on 2017/7/12.
+//  Copyright © 2017年 Flame Grace. All rights reserved.
+// 渐变圆环，可以设置进度
 
 #define degreesToRadians(x) (M_PI*(x)/180.0) //把角度转换成PI的方式
 #define radiansToDegrees(x) ((x)*180.0/M_PI) //把弧度转换成角度的方式
@@ -14,29 +14,27 @@
 @interface GradientCirque : UIView
 
 -(instancetype)initWithFrame:(CGRect)frame lineWidth:(float)lineWidth;
-
+//圆环背景颜色
 @property (strong, nonatomic) UIColor *backStrokeColor;
-//[NSArray arrayWithObjects:(id)[RGB(255, 151, 0) CGColor],(id)[RGB(255, 203, 0) CGColor], nil];
+//圆环渐变颜色
 @property (strong, nonatomic) NSArray *gradientColors;
-
+//是否隐藏终点小圆点
+@property (assign, nonatomic) BOOL hideEndPoint;
+//终点的小圆点边界与圆环的边距
+@property (assign, nonatomic) CGFloat endPointMargin;
+//终点的小圆点
 @property (strong, nonatomic) UIImage *endPointImage;
-//角度
+//起始角度
 @property (assign, nonatomic) CGFloat startAngle;
-//角度
+//终止角度
 @property (assign, nonatomic) CGFloat endAngle;
-
+//圆环边距
 @property (assign, nonatomic) CGFloat margin;
-
+//进度
 @property (assign,nonatomic) float progress;
-
+//圆环宽度
 @property (assign,nonatomic) CGFloat lineWidth;
-
+//某个点是否在lineWidth的圆环上
 - (BOOL)containPoint:(CGPoint)point;
-
-- (CGFloat)width;
-
-- (CGFloat)height;
-
-- (CGRect)frame;
 
 @end
