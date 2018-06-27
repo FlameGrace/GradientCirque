@@ -31,7 +31,7 @@
 //圆环边距
 @property (assign, nonatomic) CGFloat margin;
 //进度
-@property (assign,nonatomic) float progress;
+@property (assign,nonatomic) CGFloat progress;
 //圆环宽度
 @property (assign,nonatomic) CGFloat lineWidth;
 //某个点是否在lineWidth的圆环上

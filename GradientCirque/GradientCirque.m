@@ -34,8 +34,8 @@
         _lineWidth = lineWidth;
         _backStrokeColor = [UIColor colorWithRed:50.0/255.0f green:50.0/255.0f blue:50.0/255.0f alpha:1];
         _gradientColors = [NSArray arrayWithObjects:(id)[RGB(255, 203, 0) CGColor],(id)[RGB(255, 151, 0) CGColor], nil];
-        _startAngle = -90;
-        _endAngle = 270;
+        _startAngle = 0;
+        _endAngle = 360;
         _endPointMargin = 1.0f;
         [self layoutLayers];
         self.progress = 0;
@@ -149,11 +149,19 @@
 }
 
 
--(void)setProgress:(float)progress
+-(void)setProgress:(CGFloat)progress
 {
     if(_progress == progress)
     {
         return;
+    }
+    if(progress < 0)
+    {
+        progress = 0;
+    }
+    if(progress > 1)
+    {
+        progress = 1;
     }
     _progress = progress;
     _progressLayer.strokeEnd = progress;

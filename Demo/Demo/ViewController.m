@@ -22,6 +22,8 @@
     self.slider = [[GradientCirqueSlider alloc]initWithFrame:CGRectMake(0, 0, 200, 200) lineWidth:20];
     self.slider.maxValue = 30;
     self.slider.minValue = 10;
+    self.slider.startAngle = 0;
+    self.slider.endAngle = 360;
     self.slider.delegate = self;
     self.slider.center = self.view.center;
     [self.view addSubview:self.slider];

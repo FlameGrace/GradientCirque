@@ -37,7 +37,7 @@
 - (void)handlePan:(UIPanGestureRecognizer *)pan
 {
     CGPoint point = [pan locationInView:self];
-    [self updateTemperatureByTouchPoint:point];
+    [self updateProgressByTouchPoint:point isPan:YES];
     if(pan.state == UIGestureRecognizerStateBegan)
     {
         [self gradientCirqueSliderTouchStart:self];
@@ -90,12 +90,12 @@
     CGPoint point = [touch locationInView:self];
     if([self containPoint:point]&&_enabled)
     {
-        [self updateTemperatureByTouchPoint:point];
+        [self updateProgressByTouchPoint:point isPan:NO];
     }
     
 }
 
-- (void)updateTemperatureByTouchPoint:(CGPoint)point
+- (void)updateProgressByTouchPoint:(CGPoint)point isPan:(BOOL)isPan
 {
     CGFloat width = self.frame.size.width;
     float radius = (width-self.lineWidth)/2.0 - self.margin;
@@ -107,14 +107,44 @@
         radians -= M_PI;
     }
     CGFloat degrees = radiansToDegrees(radians);
-    CGFloat percent = (degrees-self.startAngle)/(self.endAngle- self.startAngle);
-    if(percent<0)
+    CGFloat maxAngle = self.startAngle + 360;
+    if(degrees < self.startAngle)
     {
-        percent += 1;
+        degrees += 360;
     }
-    if(percent>1)
+    if(degrees > maxAngle)
     {
-        percent -= 1;
+        degrees -= 360;
+    }
+    CGFloat percent = (degrees-self.startAngle)/(self.endAngle- self.startAngle);
+    if(percent < 0)
+    {
+        percent = 0;
+    }
+    if(percent > 1)
+    {
+        percent = 1;
+    }
+    if(isPan)
+    {
+        //防止在progress接近0时滑动过快，导致的停顿现象
+        if(percent == 1 && self.progress < 0.5)
+        {
+            percent = 0;
+        }
+        else
+        {
+            CGFloat reduce = percent - self.progress;
+            if(reduce < 0)
+            {
+                reduce = self.progress - percent;
+            }
+            //防止超过progress到达0或到达1后继续滑动导致的跳变为1或0
+            if(reduce > 0.9)
+            {
+                return;
+            }
+        }
     }
     self.progress = percent;
     [self gradientCirqueSliderValueChanged:self];
@@ -130,9 +160,6 @@
 {
     self.progress = (value-self.minValue)/(self.maxValue-self.minValue);
 }
-
-
-
 
 
 @end
