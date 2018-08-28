@@ -31,10 +31,18 @@
 //圆环边距
 @property (assign, nonatomic) CGFloat margin;
 //进度
-@property (assign,nonatomic) CGFloat progress;
+@property (assign,nonatomic) float progress;
 //圆环宽度
 @property (assign,nonatomic) CGFloat lineWidth;
 //某个点是否在lineWidth的圆环上
 - (BOOL)containPoint:(CGPoint)point;
+//当前点与圆点间的角度
+- (CGFloat)degressByPoint:(CGPoint)point;
+
+- (CGFloat)width;
+
+- (CGFloat)height;
+
+- (CGRect)frame;
 
 @end

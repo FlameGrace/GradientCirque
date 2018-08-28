@@ -33,7 +33,7 @@
         _cacheFrame = frame;
         _lineWidth = lineWidth;
         _backStrokeColor = [UIColor colorWithRed:50.0/255.0f green:50.0/255.0f blue:50.0/255.0f alpha:1];
-        _gradientColors = [NSArray arrayWithObjects:(id)[RGB(255, 203, 0) CGColor],(id)[RGB(255, 151, 0) CGColor], nil];
+        _gradientColors = [NSArray arrayWithObjects:(id)[RGB(255, 151, 0) CGColor],(id)[RGB(255, 203, 0) CGColor], nil];
         _startAngle = 0;
         _endAngle = 360;
         _endPointMargin = 1.0f;
@@ -149,7 +149,7 @@
 }
 
 
--(void)setProgress:(CGFloat)progress
+-(void)setProgress:(float)progress
 {
     if(_progress == progress)
     {
@@ -171,14 +171,43 @@
 
 - (BOOL)containPoint:(CGPoint)point
 {
-    float centerX = _cacheWidth/2.0;
-    float centerY = _cacheHeight/2.0;
-    //半径
-    float radius = (_cacheWidth)/2.0;
-    
-    //创建贝塞尔路径
-    UIBezierPath *path = [UIBezierPath bezierPathWithArcCenter:CGPointMake(centerX, centerY) radius:radius startAngle:degreesToRadians(_startAngle) endAngle:degreesToRadians(_endAngle) clockwise:YES];
-    return [path containsPoint:point];
+    double dx = fabs(point.x - _cacheWidth/2.0);
+    double dy = fabs(point.y - _cacheHeight/2.0);
+    double dis = hypot(dx, dy);
+    double radius = _cacheWidth/2.0 - _lineWidth - _margin;
+    double radius2 = _cacheWidth/2.0 - _margin;
+    BOOL contain = NO;
+    if(dis >= radius && dis <= radius2)
+    {
+        CGFloat degress = [self degressByPoint:point];
+        if(degress >= self.startAngle && degress <= self.endAngle)
+        {
+            contain =  YES;
+        }
+    }
+    return contain;
+}
+
+- (CGFloat)degressByPoint:(CGPoint)point
+{
+    float radius = _cacheWidth/2.0;
+    CGFloat x =  point.x - radius;
+    CGFloat y =  point.y - radius;
+    CGFloat radians = atan(y/x);
+    if(x<0)
+    {
+        radians -= M_PI;
+    }
+    CGFloat degrees = radiansToDegrees(radians);
+    if(degrees < self.startAngle && degrees + 360 < self.endAngle)
+    {
+        degrees += 360;
+    }
+    if(degrees > self.startAngle + 360)
+    {
+        degrees -= 360;
+    }
+    return degrees;
 }
 
 //更新小点的位置
@@ -203,6 +232,22 @@
     self.endPoint.layer.cornerRadius = rect.size.width/2;
     //移动到最前
     [self bringSubviewToFront:self.endPoint];
+    
+}
+
+- (CGFloat)width
+{
+    return _cacheWidth;
+}
+
+- (CGFloat)height
+{
+    return _cacheHeight;
+}
+
+- (CGRect)frame
+{
+    return _cacheFrame;
 }
 
 - (UIImageView *)endPoint
@@ -211,7 +256,7 @@
     {
         //用于显示结束位置的小点
         _endPoint = [[UIImageView alloc] init];
-        _endPoint.backgroundColor = [UIColor redColor];
+        _endPoint.backgroundColor = [UIColor whiteColor];
         [self addSubview:_endPoint];
         _endPoint.layer.masksToBounds = YES;
         _endPoint.hidden = self.hideEndPoint;
@@ -220,3 +265,4 @@
 }
 
 @end
+

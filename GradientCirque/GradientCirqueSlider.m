@@ -8,7 +8,7 @@
 
 #import "GradientCirqueSlider.h"
 
-@interface GradientCirqueSlider()
+@interface GradientCirqueSlider() <UIGestureRecognizerDelegate>
 
 @property (strong, nonatomic) UIPanGestureRecognizer *pan;
 
@@ -23,33 +23,10 @@
     {
         _enabled = YES;
         self.pan = [[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(handlePan:)];
+        self.pan.delegate = self;
         [self addGestureRecognizer:self.pan];
     }
     return self;
-}
-
-- (void)setEnabled:(BOOL)enabled
-{
-    _enabled = enabled;
-    self.pan.enabled = enabled;
-}
-
-- (void)handlePan:(UIPanGestureRecognizer *)pan
-{
-    CGPoint point = [pan locationInView:self];
-    [self updateProgressByTouchPoint:point isPan:YES];
-    if(pan.state == UIGestureRecognizerStateBegan)
-    {
-        [self gradientCirqueSliderTouchStart:self];
-    }
-    if(pan.state == UIGestureRecognizerStateChanged)
-    {
-        [self gradientCirqueSliderTouchMove:self];
-    }
-    if(pan.state == UIGestureRecognizerStateEnded)
-    {
-        [self gradientCirqueSliderTouchEnd:self];
-    }
 }
 
 - (void)gradientCirqueSliderTouchStart:(GradientCirqueSlider *)cirque
@@ -84,38 +61,69 @@
     }
 }
 
+- (void)setEnabled:(BOOL)enabled
+{
+    _enabled = enabled;
+    self.pan.enabled = enabled;
+}
+
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
+{
+    CGPoint point = [touch locationInView:self];
+    if([self panAreaContainsPoint:point])
+    {
+        return YES;
+    }
+    return NO;
+}
+
+- (void)handlePan:(UIPanGestureRecognizer *)pan
+{
+    CGPoint point = [pan locationInView:self];
+    [self updateProgressByTouchPoint:point isPan:YES];
+    if(pan.state == UIGestureRecognizerStateBegan)
+    {
+        [self gradientCirqueSliderTouchStart:self];
+    }
+    if(pan.state == UIGestureRecognizerStateChanged)
+    {
+        [self gradientCirqueSliderTouchMove:self];
+    }
+    if(pan.state == UIGestureRecognizerStateEnded)
+    {
+        [self gradientCirqueSliderTouchEnd:self];
+    }
+}
+
+- (BOOL)panAreaContainsPoint:(CGPoint)point
+{
+    double dx = fabs(point.x - [self width]/2.0);
+    double dy = fabs(point.y - [self width]/2.0);
+    double dis = hypot(dx, dy);
+    double radius = [self width]/2.0 - self.lineWidth*2 - self.margin;
+    double radius2 = [self width]/2.0 - self.margin + self.lineWidth;
+    if(dis >= radius && dis <= radius2)
+    {
+        return YES;
+    }
+    return NO;
+}
+
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
     UITouch *touch = [[touches allObjects]firstObject];
     CGPoint point = [touch locationInView:self];
-    if([self containPoint:point]&&_enabled)
+    if([self panAreaContainsPoint:point])
     {
         [self updateProgressByTouchPoint:point isPan:NO];
     }
-    
 }
 
 - (void)updateProgressByTouchPoint:(CGPoint)point isPan:(BOOL)isPan
 {
-    CGFloat width = self.frame.size.width;
-    float radius = (width-self.lineWidth)/2.0 - self.margin;
-    CGFloat x =  point.x - radius;
-    CGFloat y =  point.y - radius;
-    CGFloat radians = atan(y/x);
-    if(x<0)
-    {
-        radians -= M_PI;
-    }
-    CGFloat degrees = radiansToDegrees(radians);
-    CGFloat maxAngle = self.startAngle + 360;
-    if(degrees < self.startAngle)
-    {
-        degrees += 360;
-    }
-    if(degrees > maxAngle)
-    {
-        degrees -= 360;
-    }
+    CGFloat degrees = [self degressByPoint:point];
+    
     CGFloat percent = (degrees-self.startAngle)/(self.endAngle- self.startAngle);
     if(percent < 0)
     {
@@ -127,25 +135,15 @@
     }
     if(isPan)
     {
-        //防止在progress接近0时滑动过快，导致的停顿现象
-        if(percent == 1 && self.progress < 0.5)
+        CGFloat reduce = fabs(percent - self.progress);
+        //防止超过progress到达0或到达1后继续滑动导致的跳变为1或0
+        if(reduce > 0.9)
         {
-            percent = 0;
+            return;
         }
-        else
-        {
-            CGFloat reduce = percent - self.progress;
-            if(reduce < 0)
-            {
-                reduce = self.progress - percent;
-            }
-            //防止超过progress到达0或到达1后继续滑动导致的跳变为1或0
-            if(reduce > 0.9)
-            {
-                return;
-            }
-        }
+            
     }
+    
     self.progress = percent;
     [self gradientCirqueSliderValueChanged:self];
 }
